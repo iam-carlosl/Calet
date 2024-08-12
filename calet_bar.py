@@ -304,7 +304,7 @@ class ClAppBar(ft.UserControl):
 
 # app menu bar section (ok)
 class ClMenuSection(ft.UserControl):
-    """Represents a section of an app submenu bar to be used in ```calet_bar.ClSubmenuBar``` objects."""
+    """Represents a section of an app menu bar to be used in ```calet_bar.ClMenuBar``` objects."""
     def __init__(self, theme:ClTheme, actions:list[list], lateral:bool=False, defined:bool=False, expand:bool|int=False):
         """Use this properties to personalize the menu section:\n
         ---
