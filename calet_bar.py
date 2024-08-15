@@ -304,7 +304,7 @@ class ClAppBar(ft.UserControl):
 
 # app menu bar section (ok)
 class ClMenuSection(ft.UserControl):
-    """Represents a section of an app menu bar to be used in ```calet_bar.ClMenuBar``` objects."""
+    """Represents a section of an app submenu bar to be used in ```calet_bar.ClSubmenuBar``` objects."""
     def __init__(self, theme:ClTheme, actions:list[list], lateral:bool=False, defined:bool=False, expand:bool|int=False):
         """Use this properties to personalize the menu section:\n
         ---
@@ -1975,6 +1975,42 @@ if __name__ == "__main__":
             ]
         )
 
+        botnav_bar = ClBottomNavBar(
+            theme=theme,
+            options=[
+                ClNavButton(
+                    theme=theme,
+                    label="NavBtn 1",
+                    icon=ft.icons.LOCAL_BAR_OUTLINED,
+                    selected_icon=ft.icons.LOCAL_BAR,
+                    rounded=False,
+                    # all_as_button=True,
+                    width=60,
+                    height=60
+                ),
+                ClNavButton(
+                    theme=theme,
+                    label="NavBtn 2",
+                    icon=ft.icons.LOCAL_CAFE_OUTLINED,
+                    selected_icon=ft.icons.LOCAL_CAFE,
+                    rounded=False,
+                    # all_as_button=True,
+                    width=60,
+                    height=60
+                ),
+                ClNavButton(
+                    theme=theme,
+                    label="NavBtn 3",
+                    icon=ft.icons.LOCAL_PIZZA_OUTLINED,
+                    selected_icon=ft.icons.LOCAL_PIZZA,
+                    rounded=False,
+                    # all_as_button=True,
+                    width=60,
+                    height=60
+                )
+            ]
+        )
+
         page.padding = 0
         page.window_title_bar_hidden = True
         page.theme_mode = ft.ThemeMode.DARK
@@ -2012,7 +2048,8 @@ if __name__ == "__main__":
                                     ]
                                 )
                             ]
-                        )
+                        ),
+                        botnav_bar
                     ]
                 )
             )
