@@ -304,7 +304,7 @@ class ClAppBar(ft.UserControl):
 
 # app menu bar section (ok)
 class ClMenuSection(ft.UserControl):
-    """Represents a section of an app menu bar to be used in ```calet_bar.ClMenuBar``` objects."""
+    """Represents a section of an app submenu bar to be used in ```calet_bar.ClSubmenuBar``` objects."""
     def __init__(self, theme:ClTheme, actions:list[list], lateral:bool=False, defined:bool=False, expand:bool|int=False):
         """Use this properties to personalize the menu section:\n
         ---
@@ -1141,17 +1141,71 @@ class ClLateralNavBar(ft.UserControl):
 class ClBottomNavBar(ft.UserControl):
     """Represents a bottom app navigation bar to be used in Flet Apps."""
     def __init__(self, theme:ClTheme, options:list[ClNavButton], selected_option:int=0, 
-                 bar_size:int=40, expand:bool|int=False, transparent:bool=False, with_blur:bool=False):
+                 bar_size:int=60, expand:bool|int=False, transparent:bool=False, with_blur:bool=False,
+                 with_shadow=False):
         """Use this properties to personalize the bar:\n
         ---
         - theme: is an instance of ```calet_theme.ClTheme``` with the colors set to paint the bar.
         - options: is a list of ```calet_button.ClNavTab``` or ```calet_button.ClSelectableTextButton``` objects where each object will represent a different option in the nav bar. All objects in the list must be of the same class.
         - selected_option: is the index of the default selected option in the nav bar.
         - bar_size: is the custom size of the bar. If ```expand``` is not None this property will be ignored.
-        - expand: is the responsive expansion of the menu bar in his container. See ```expand``` Flet property for more information.
-        - transparent: is a flag saying if the submenu must be displayed transparent or colored.
-        - with_blur: is a flag saying if the submenu must be displayed with blur effect or not.
+        - expand: is the responsive expansion of the bar in his container. See ```expand``` Flet property for more information.
+        - transparent: is a flag saying if the bar must be displayed transparent or colored.
+        - with_blur: is a flag saying if the bar must be displayed with blur effect or not.
+        - with_shadow: is a flag saying if the bar must be displayed with shadow or solid border.
         """
+        # VALIDATION
+        if not isinstance(theme, ClTheme):
+            raise ClError(
+                error="Argument Error: <<theme>> must be an instance of 'calet_theme.ClTheme' class."
+            )
+        if not isinstance(selected_option, int):
+            raise ClError(
+                error="Argument Error: <<selected_option>> must be boolean."
+            )
+        if not isinstance(bar_size, int):
+            raise ClError(
+                error="Argument Error: <<bar_size>> must be integer."
+            )
+        if not isinstance(expand, (bool,int)):
+            raise ClError(
+                error="Argument Error: <<expand>> must be boolean or integer."
+            )
+        if not isinstance(transparent, bool):
+            raise ClError(
+                error="Argument Error: <<transparent>> must be boolean."
+            )
+        if not isinstance(with_blur, bool):
+            raise ClError(
+                error="Argument Error: <<with_blur>> must be boolean."
+            )
+        if not isinstance(with_shadow, bool):
+            raise ClError(
+                error="Argument Error: <<with_shadow>> must be boolean."
+            )
+        options_map = {}
+        if not isinstance(options, list):
+            raise ClError(
+                error="Argument Error: <<options>> must be a list."
+            )
+        else:
+            if not options:
+                raise ClError(
+                    error="Argument Error: <<options>> must be a list with at least one option."
+                )
+            if not -1 <= selected_option < len(options):
+                raise ClError(
+                    error="Argument Error: <<selected_option>> is out of the range of possible options."
+                )
+            for i in range(len(options)):
+                if not isinstance(options[i], ClNavButton):
+                    raise ClError(
+                        error=f"""Argument Error: <<options[{i}]>> must be an instance of 'calet_bar.ClNavButton' class."""
+                    )
+                options[i].selected = True if i == selected_option else False
+                options_map[options[i]] = i, options[i].action
+                options[i].action = self.option_clicked
+        # INITIALIZATION
         super().__init__()
         self.theme = theme
         self.options = options
@@ -1160,12 +1214,51 @@ class ClBottomNavBar(ft.UserControl):
         self.expand = expand
         self.transparent = transparent
         self.with_blur = with_blur
+        self.with_shadow = with_shadow
+        self.options_map = options_map
     
     def build(self):
 
-        return ft.NavigationBar(
-            destinations=self.options
+        # NAV BAR
+        # - bar items
+        self.items = ft.Row(
+            spacing=10,
+            alignment=ft.MainAxisAlignment.SPACE_AROUND,
+            controls=self.options
         )
+        # - bar
+        self.bar = ft.Container(
+            expand=self.expand,
+            bgcolor=self.theme.background_one,
+            alignment=ft.alignment.center,
+            height=self.bar_size if not self.expand else None,
+            border=ft.border.only(top=ft.BorderSide(1,self.theme.divider)) if not self.with_shadow else None,
+            shadow=ft.BoxShadow(
+                spread_radius=0,
+                blur_radius=3,
+                color="black",
+                blur_style=ft.ShadowBlurStyle.OUTER,
+                offset=ft.Offset(0,-1)
+            ) if self.with_shadow else None,
+            padding=5,
+            content=self.items
+        )
+
+        return self.bar
+
+    def option_clicked(self, e:ft.TapEvent):
+        # mapping the index of the clicked option and updating selection
+        clicked_index = self.options_map[e.control.data][0]
+        if self.selected_option != clicked_index:
+            self.options[self.selected_option].upd(selected=False)
+            self.selected_option = clicked_index
+            self.update()
+            # mapping the custom action of the clicked option and redirecting it to the user
+            clicked_action = self.options_map[e.control.data][1]
+            if clicked_action is not None:
+                clicked_action(e)
+        else:  # nothing change in the selections, but the calet selection buttons are always unselected on click, so need to be selected again
+            self.options[self.selected_option].upd(selected=True)
 
 # swap nav bar
 class ClSwapNavBar(ft.UserControl):
@@ -1306,4 +1399,3 @@ class ClSwapNavBar(ft.UserControl):
         clicked_action = self.options_map[e.control.data][1]
         if clicked_action is not None:
             clicked_action(e)
-        
